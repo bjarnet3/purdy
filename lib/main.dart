@@ -3,26 +3,27 @@ import 'dart:async';
 import 'package:circle_nav_bar/circle_nav_bar.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 String formatDate(DateTime d) {
   return d.toString().substring(0, 19);
 }
 
-void main() {
-  runApp(const MainApp());
+Future<void> main() async {
+  runApp(const ProviderScope(child: MainApp()));
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends HookConsumerWidget {
   const MainApp({super.key});
 
   // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Purple Andy'),
     );
   }
 }
@@ -47,7 +48,8 @@ class _MyHomePageState extends State<MyHomePage>
 
   late Stream<StepCount> _stepCountStream;
   late Stream<PedestrianStatus> _pedestrianStatusStream;
-  String _status = '?', _steps = '?';
+  String _status = '?';
+  String _steps = '?';
 
   late PageController pageController;
 
@@ -105,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage>
     }
 
     _pedestrianStatusStream = Pedometer.pedestrianStatusStream;
-    (await _pedestrianStatusStream.listen(onPedestrianStatusChanged))
+    (_pedestrianStatusStream.listen(onPedestrianStatusChanged))
         .onError(onPedestrianStatusError);
 
     _stepCountStream = Pedometer.stepCountStream;
@@ -159,7 +161,7 @@ class _MyHomePageState extends State<MyHomePage>
               color: Colors.pink,
               child: Center(
                 child: Text(
-                  _status,
+                  _status + _steps,
                   style: _status == 'walking' || _status == 'stopped'
                       ? const TextStyle(fontSize: 30, color: Colors.white)
                       : const TextStyle(fontSize: 20, color: Colors.white),
