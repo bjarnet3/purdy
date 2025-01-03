@@ -157,15 +157,26 @@ class _MyHomePageState extends State<MyHomePage>
         children: [
           Container(
               width: double.infinity,
-              height: double.infinity,
-              color: Colors.pink,
-              child: Center(
-                child: Text(
-                  _status + _steps,
-                  style: _status == 'walking' || _status == 'stopped'
-                      ? const TextStyle(fontSize: 30, color: Colors.white)
-                      : const TextStyle(fontSize: 20, color: Colors.white),
-                ),
+              height: 500,
+              color: Colors.black,
+              child: Column(
+                children: [
+                  const Spacer(),
+                  Text(
+                    "STATUS: $_status",
+                    style: _status == 'walking' || _status == 'stopped'
+                        ? const TextStyle(fontSize: 30, color: Colors.white)
+                        : const TextStyle(fontSize: 20, color: Colors.white),
+                  ),
+                  Container(
+                    height: 20,
+                  ),
+                  Text(
+                    "STEPS:   $_steps",
+                    style: const TextStyle(fontSize: 30, color: Colors.white),
+                  ),
+                  const Spacer(),
+                ],
               )),
           Container(
               width: double.infinity,
@@ -174,7 +185,7 @@ class _MyHomePageState extends State<MyHomePage>
           Container(
               width: double.infinity,
               height: double.infinity,
-              color: Colors.red),
+              color: Colors.black),
         ],
       ),
     );
