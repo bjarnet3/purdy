@@ -10,6 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
   circle_nav_bar: ^2.2.0
+  pedometer: ^4.0.2
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:
