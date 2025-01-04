@@ -4,6 +4,7 @@ import 'package:circle_nav_bar/circle_nav_bar.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 String formatDate(DateTime d) {
   return d.toString().substring(0, 19);
@@ -16,7 +17,6 @@ Future<void> main() async {
 class MainApp extends HookConsumerWidget {
   const MainApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
@@ -28,96 +28,49 @@ class MainApp extends HookConsumerWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends HookConsumerWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tabIndex = useState(1);
+    final pageController = usePageController(initialPage: tabIndex.value);
+    final status = useState('?');
+    final stepCount = useState('?');
 
-class _MyHomePageState extends State<MyHomePage>
-    with SingleTickerProviderStateMixin {
-  int _tabIndex = 1;
-  int get tabIndex => _tabIndex;
-  set tabIndex(int v) {
-    _tabIndex = v;
-    setState(() {});
-  }
+    useEffect(() {
+      Future<void> initPlatformState() async {
+        bool granted = await Permission.activityRecognition.isGranted;
 
-  late Stream<StepCount> _stepCountStream;
-  late Stream<PedestrianStatus> _pedestrianStatusStream;
-  String _status = '?';
-  String _steps = '?';
+        if (!granted) {
+          granted = await Permission.activityRecognition.request() ==
+              PermissionStatus.granted;
+        }
 
-  late PageController pageController;
+        if (!granted) {
+          // tell user, the app will not work
+          return;
+        }
 
-  @override
-  void initState() {
-    super.initState();
-    pageController = PageController(initialPage: _tabIndex);
-    initPlatformState();
-  }
+        Pedometer.pedestrianStatusStream.listen((event) {
+          status.value = event.status;
+        }).onError((error) {
+          status.value = 'Pedestrian Status not available';
+        });
 
-  void onStepCount(StepCount event) {
-    print(event);
-    setState(() {
-      _steps = event.steps.toString();
-    });
-  }
+        Pedometer.stepCountStream.listen((event) {
+          stepCount.value = event.steps.toString();
+        }).onError((error) {
+          stepCount.value = 'Step Count not available';
+        });
+      }
 
-  void onPedestrianStatusChanged(PedestrianStatus event) {
-    print(event);
-    setState(() {
-      _status = event.status;
-    });
-  }
+      initPlatformState();
+      return null;
+    }, []);
 
-  void onPedestrianStatusError(error) {
-    print('onPedestrianStatusError: $error');
-    setState(() {
-      _status = 'Pedestrian Status not available';
-    });
-    print(_status);
-  }
-
-  void onStepCountError(error) {
-    print('onStepCountError: $error');
-    setState(() {
-      _steps = 'Step Count not available';
-    });
-  }
-
-  Future<bool> _checkActivityRecognitionPermission() async {
-    bool granted = await Permission.activityRecognition.isGranted;
-
-    if (!granted) {
-      granted = await Permission.activityRecognition.request() ==
-          PermissionStatus.granted;
-    }
-
-    return granted;
-  }
-
-  Future<void> initPlatformState() async {
-    bool granted = await _checkActivityRecognitionPermission();
-    if (!granted) {
-      // tell user, the app will not work
-    }
-
-    _pedestrianStatusStream = Pedometer.pedestrianStatusStream;
-    (_pedestrianStatusStream.listen(onPedestrianStatusChanged))
-        .onError(onPedestrianStatusError);
-
-    _stepCountStream = Pedometer.stepCountStream;
-    _stepCountStream.listen(onStepCount).onError(onStepCountError);
-
-    if (!mounted) return;
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
       bottomNavigationBar: CircleNavBar(
@@ -131,13 +84,13 @@ class _MyHomePageState extends State<MyHomePage>
           Text("Home", style: TextStyle(color: Colors.white)),
           Text("About", style: TextStyle(color: Colors.white)),
         ],
-        color: Colors.deepPurple,
+        color: Colors.purple,
         height: 60,
         circleWidth: 60,
-        activeIndex: tabIndex,
+        activeIndex: tabIndex.value,
         onTap: (index) {
-          tabIndex = index;
-          pageController.jumpToPage(tabIndex);
+          tabIndex.value = index;
+          pageController.jumpToPage(tabIndex.value);
         },
         padding: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
         cornerRadius: const BorderRadius.only(
@@ -152,40 +105,43 @@ class _MyHomePageState extends State<MyHomePage>
       body: PageView(
         controller: pageController,
         onPageChanged: (v) {
-          tabIndex = v;
+          tabIndex.value = v;
         },
         children: [
           Container(
-              width: double.infinity,
-              height: 500,
-              color: Colors.black,
-              child: Column(
-                children: [
-                  const Spacer(),
-                  Text(
-                    "STATUS: $_status",
-                    style: _status == 'walking' || _status == 'stopped'
-                        ? const TextStyle(fontSize: 30, color: Colors.white)
-                        : const TextStyle(fontSize: 20, color: Colors.white),
-                  ),
-                  Container(
-                    height: 20,
-                  ),
-                  Text(
-                    "STEPS:   $_steps",
-                    style: const TextStyle(fontSize: 30, color: Colors.white),
-                  ),
-                  const Spacer(),
-                ],
-              )),
+            width: double.infinity,
+            height: 500,
+            color: Colors.black,
+            child: Column(
+              children: [
+                const Spacer(),
+                Text(
+                  "STATUS: ${status.value}",
+                  style: status.value == 'walking' || status.value == 'stopped'
+                      ? const TextStyle(fontSize: 30, color: Colors.white)
+                      : const TextStyle(fontSize: 20, color: Colors.white),
+                ),
+                Container(
+                  height: 20,
+                ),
+                Text(
+                  "STEPS:   ${stepCount.value}",
+                  style: const TextStyle(fontSize: 30, color: Colors.white),
+                ),
+                const Spacer(),
+              ],
+            ),
+          ),
           Container(
-              width: double.infinity,
-              height: double.infinity,
-              color: Colors.black),
+            width: double.infinity,
+            height: double.infinity,
+            color: Colors.black,
+          ),
           Container(
-              width: double.infinity,
-              height: double.infinity,
-              color: Colors.black),
+            width: double.infinity,
+            height: double.infinity,
+            color: Colors.black,
+          ),
         ],
       ),
     );
