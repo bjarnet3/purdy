@@ -37,36 +37,63 @@ class MyHomePage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tabIndex = useState(1);
     final pageController = usePageController(initialPage: tabIndex.value);
+
+    late Stream<StepCount> stepCountStream;
+    late Stream<PedestrianStatus> pedestrianStatusStream;
+
     final status = useState('?');
-    final stepCount = useState('?');
+    final steps = useState('0');
 
-    useEffect(() {
-      Future<void> initPlatformState() async {
-        bool granted = await Permission.activityRecognition.isGranted;
+    void onStepCount(StepCount event) {
+      print(event);
+      steps.value = event.steps.toString();
+    }
 
-        if (!granted) {
-          granted = await Permission.activityRecognition.request() ==
-              PermissionStatus.granted;
-        }
+    void onPedestrianStatusChanged(PedestrianStatus event) {
+      print(event);
+      status.value = event.status;
+    }
 
-        if (!granted) {
-          // tell user, the app will not work
-          return;
-        }
+    void onPedestrianStatusError(error) {
+      print('onPedestrianStatusError: $error');
 
-        Pedometer.pedestrianStatusStream.listen((event) {
-          status.value = event.status;
-        }).onError((error) {
-          status.value = 'Pedestrian Status not available';
-        });
+      status.value = 'Pedestrian Status not available';
 
-        Pedometer.stepCountStream.listen((event) {
-          stepCount.value = event.steps.toString();
-        }).onError((error) {
-          stepCount.value = 'Step Count not available';
-        });
+      print(status);
+    }
+
+    void onStepCountError(error) {
+      print('onStepCountError: $error');
+
+      steps.value = 'Step Count not available';
+    }
+
+    Future<bool> checkActivityRecognitionPermission() async {
+      bool granted = await Permission.activityRecognition.isGranted;
+
+      if (!granted) {
+        granted = await Permission.activityRecognition.request() ==
+            PermissionStatus.granted;
       }
 
+      return granted;
+    }
+
+    Future<void> initPlatformState() async {
+      bool granted = await checkActivityRecognitionPermission();
+      if (!granted) {
+        // tell user, the app will not work
+      }
+
+      pedestrianStatusStream = Pedometer.pedestrianStatusStream;
+      (pedestrianStatusStream.listen(onPedestrianStatusChanged))
+          .onError(onPedestrianStatusError);
+
+      stepCountStream = Pedometer.stepCountStream;
+      stepCountStream.listen(onStepCount).onError(onStepCountError);
+    }
+
+    useEffect(() {
       initPlatformState();
       return null;
     }, []);
@@ -109,8 +136,6 @@ class MyHomePage extends HookConsumerWidget {
         },
         children: [
           Container(
-            width: double.infinity,
-            height: 500,
             color: Colors.black,
             child: Column(
               children: [
@@ -125,7 +150,7 @@ class MyHomePage extends HookConsumerWidget {
                   height: 20,
                 ),
                 Text(
-                  "STEPS:   ${stepCount.value}",
+                  "STEPS:   ${steps.value}",
                   style: const TextStyle(fontSize: 30, color: Colors.white),
                 ),
                 const Spacer(),
