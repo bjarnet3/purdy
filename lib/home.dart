@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:circle_nav_bar/circle_nav_bar.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:purdy/steps.dart';
 
 class HomePage extends HookConsumerWidget {
@@ -13,6 +15,44 @@ class HomePage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tabIndex = useState(1);
     final pageController = usePageController(initialPage: tabIndex.value);
+    PermissionStatus perm = PermissionStatus.provisional;
+    const double themeBorderRadius = 8.0; // Define the themeBorderRadius
+
+    useEffect(() {
+      () async {
+        perm = Platform.isAndroid
+            ? await Permission.activityRecognition.request()
+            : await Permission.sensors.request();
+        print('perm: $perm');
+      }();
+      return () {};
+    }, []);
+
+    if (perm.isDenied || perm.isPermanentlyDenied || perm.isRestricted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'You need to approve the permissions to use the pedometer',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onError,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          backgroundColor: Theme.of(context).colorScheme.errorContainer,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
+          // Open the system settings to allow the permissions
+          action: SnackBarAction(
+            label: 'Settings',
+            textColor: Theme.of(context).colorScheme.onError,
+            onPressed: () => openAppSettings(),
+          ),
+        ),
+      );
+    } else {
+      // Call the functions your need to read stepCount
+    }
 
     return Scaffold(
       extendBody: true,
