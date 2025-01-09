@@ -11,7 +11,6 @@ dependencies:
     sdk: flutter
   circle_nav_bar: ^2.2.0
   pedometer: ^4.0.2
-  pedometer_2: ^5.0.4
   permission_handler: ^11.3.1
   hooks_riverpod: ^2.6.1
   flutter_hooks: ^0.20.5
