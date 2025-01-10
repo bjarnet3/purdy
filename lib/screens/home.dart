@@ -6,49 +6,56 @@ class Home extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    DateTime now = DateTime.now();
-    // Start of the week - Monday
-    DateTime fromDate = now.subtract(Duration(days: now.weekday - 1));
-    // End of the week - Sunday
-    DateTime toDate =
-        now.add(Duration(days: DateTime.daysPerWeek - now.weekday));
-
     return Container(
       padding: const EdgeInsets.all(20),
       width: double.infinity,
       height: double.infinity,
       color: const Color.fromARGB(255, 12, 12, 12),
-      child: const Column(
-        children: <Widget>[
-          Text(
-            'Week of',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-            ),
-          ),
-          SizedBox(height: 20),
-          Text(
-            'Steps',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-            ),
-          ),
-          SizedBox(height: 20),
-          Text(
-            'Distance',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-            ),
-          ),
-          SizedBox(height: 20),
-          Text(
-            'Calories',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
+      child: CustomScrollView(
+        slivers: <Widget>[
+          // SliverAppBar(
+          //   title: Text('Home'),
+          //   floating: true,
+          //   expandedHeight: 200,
+          //   flexibleSpace: Container(
+          //     decoration: BoxDecoration(
+          //       gradient: LinearGradient(
+          //         begin: Alignment.topCenter,
+          //         end: Alignment.bottomCenter,
+          //         colors: <Color>[
+          //           Color.fromARGB(255, 12, 12, 12),
+          //           Color.fromARGB(255, 12, 12, 12),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ),
+          SliverList(
+            delegate: SliverChildListDelegate(
+              <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  child: const Column(
+                    children: <Widget>[
+                      Text(
+                        'Home',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Welcome to the home screen!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],

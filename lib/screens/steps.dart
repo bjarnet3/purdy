@@ -17,6 +17,9 @@ class Steps extends HookConsumerWidget {
     final status = useState('?');
     final steps = useState<String?>('0');
 
+    final screenHeight = MediaQuery.of(context).size.height;
+    // final screenWidth = MediaQuery.of(context).size.width;
+
     void onStepCount(StepCount event) {
       print(event);
       steps.value = event.steps.toString();
@@ -82,27 +85,16 @@ class Steps extends HookConsumerWidget {
       child: Stack(children: [
         Column(
           children: [
-            const Spacer(),
-            Image.asset('assets/images/Purdy - Holding money.png'),
+            Container(
+              height: 15,
+            ),
+            Image.asset('assets/images/Purdy - Holding money.png',
+                height: screenHeight - 290),
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: CircularPercentIndicator(
-                      radius: 60.0,
-                      lineWidth: 5.0,
-                      percent: percentSafe,
-                      center: Text("${percentDisplay.toStringAsFixed(2)} + %",
-                          style: TextStyle(
-                              fontSize: 14.0,
-                              color: percent == 0.0
-                                  ? Colors.grey[600]
-                                  : Colors.white)),
-                      progressColor: Colors.purple,
-                    ),
-                  ),
                   Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Column(children: [
@@ -123,24 +115,52 @@ class Steps extends HookConsumerWidget {
                       ),
                     ]),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: CircularPercentIndicator(
+                      radius: 60.0,
+                      lineWidth: 5.0,
+                      percent: percentSafe,
+                      center: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            height: 2,
+                          ),
+                          status.value == 'walking'
+                              ? const Text("Walking",
+                                  style: TextStyle(
+                                      fontSize: 11.0, color: Colors.white))
+                              : Text("Stopped",
+                                  style: TextStyle(
+                                      fontSize: 11.0, color: Colors.grey[600])),
+                          Container(
+                            height: 2,
+                          ),
+                          Text("${percentDisplay.toStringAsFixed(0)} %",
+                              style: TextStyle(
+                                  fontSize: 16.0,
+                                  color: percent == 0.0
+                                      ? Colors.grey[600]
+                                      : Colors.white)),
+                        ],
+                      ),
+                      // backgroundColor: Colors.grey[600] ?? Colors.grey,
+                      progressColor: Colors.purple,
+                    ),
+                  ),
                 ],
               ),
             ),
-            Container(
-              height: 10,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(5.0),
-              child: Text(
-                "STATUS: ${status.value}",
-                style: status.value == 'walking' || status.value == 'stopped'
-                    ? const TextStyle(fontSize: 30, color: Colors.white)
-                    : const TextStyle(fontSize: 20, color: Colors.white),
-              ),
-            ),
-            Container(
-              height: 20,
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.only(left: 5.0, right: 5.0),
+            //   child: Text(
+            //     "STATUS: ${status.value}",
+            //     style: status.value == 'walking' || status.value == 'stopped'
+            //         ? const TextStyle(fontSize: 30, color: Colors.white)
+            //         : const TextStyle(fontSize: 20, color: Colors.white),
+            //   ),
+            // ),
             const Spacer(),
           ],
         )
